@@ -1,0 +1,10 @@
+.venv/
+ausgabe/
+ansicht/
+testvideos/
+kalibrierung/
+werkzeug/
+.env
+.git/
+__pycache__/
+*.pyc

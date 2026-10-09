@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="{{ sprache }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ t.marke }}</title>
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/stil.css?v={{ stand }}">
+</head>
+<body>
+
+<header class="kopfleiste">
+  <span class="wortmarke"><img src="/static/marke.svg" alt="" width="22" height="22">{{ t.marke }}</span>
+  <span class="untertitel">{{ t.untertitel }}</span>
+
+  <nav class="sprachwahl" aria-label="{{ t.sprache }}">
+    {% for code, name in sprachen.items() %}
+    <a href="/sprache/{{ code }}"
+       {% if code == sprache %}aria-current="true"{% endif %}>{{ code|upper }}</a>
+    {% endfor %}
+  </nav>
+
+  <form method="post" action="/abmelden">
+    <button type="submit" class="schlicht">{{ t.abmelden }}</button>
+  </form>
+</header>
+
+<div class="raum">
+
+  <!-- Linke Spalte: Eingaben -->
+  <form class="eingaben" id="formular" autocomplete="off">
+
+    <div class="feld">
+      <span class="beschriftung">{{ t.video }}</span>
+      <div class="ablage" id="ablage">
+        <div class="ablage-zeile">
+          <p>{{ t.ablage_ziehen }}</p>
+          <button type="button" class="schlicht" id="dateiwahl">{{ t.datei_waehlen }}</button>
+        </div>
+        <p class="hilfe">{{ t('ablage_hilfe', mb=max_mb, minuten=max_minuten) }}</p>
+        <input type="file" id="datei" accept="video/*">
+      </div>
+      <div class="datei" id="dateizeile" hidden>
+        <span id="dateiname"></span>
+        <button type="button" class="schlicht" id="dateiweg">{{ t.entfernen }}</button>
+      </div>
+
+      <label class="oder" for="quellurl"><span>{{ t.oder_adresse }}</span></label>
+      <input type="url" id="quellurl" placeholder="https://…">
+    </div>
+
+    <div class="feld">
+      <label for="headline">{{ t.headline }}</label>
+      <input type="text" id="headline" maxlength="120"
+             placeholder="{{ t.headline_platzhalter }}">
+      <span class="zaehler" id="headlinezaehler" hidden>0/120</span>
+    </div>
+
+    <div class="feld">
+      <label for="beschreibung">{{ t.beschreibung }}</label>
+      <textarea id="beschreibung" maxlength="500"
+                placeholder="{{ t.beschreibung_hilfe }}"></textarea>
+      <span class="zaehler" id="beschreibungzaehler" hidden>0/500</span>
+    </div>
+
+    <p class="notiz" id="feldhinweis" hidden>
+      <span>{{ t.hinweis_felder }}</span>
+      <button type="button" class="weg" id="hinweisweg"
+              aria-label="{{ t.hinweis_weg }}">×</button>
+    </p>
+
+    <div class="schalter">
+      <div class="paar">
+        <div class="gruppe">
+          <span class="beschriftung">{{ t.format }}</span>
+          <div class="wahl" role="group" data-name="format">
+            {% for f in formate %}
+            <button type="button" data-wert="{{ f }}"
+                    aria-pressed="{{ 'true' if loop.first else 'false' }}">{{ f }}</button>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="gruppe">
+          <span class="beschriftung">{{ t.motivlage }}</span>
+          <div class="lagewahl">
+            <div class="lageraster" role="group" aria-label="{{ t.motivlage }}"
+                 id="lageraster">
+              {% for z in motivlagen %}
+              <button type="button" data-lage="{{ z }}" aria-pressed="false"
+                      title="{{ t('lage_' + z) }}"
+                      aria-label="{{ t('lage_' + z) }}"><i></i></button>
+              {% endfor %}
+            </div>
+            <div class="lagerechts">
+              <span class="lagestand" id="lagestand">{{ t.lage_egal }}</span>
+              <div class="lageprio" id="lageprio" hidden
+                   title="{{ t.prio_hilfe }}">
+                <span class="prioname">{{ t.prio }}</span>
+                <div class="wahl zwerg" role="group" data-name="lageprio">
+                  <button type="button" data-wert="position"
+                          aria-pressed="true">{{ t.prio_position }}</button>
+                  <button type="button" data-wert="qualitaet"
+                          aria-pressed="false">{{ t.prio_qualitaet }}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="paar">
+        <div class="gruppe">
+          <span class="beschriftung">{{ t.anzahl }}</span>
+          <div class="wahl" role="group" data-name="anzahl">
+            <button type="button" data-wert="3" aria-pressed="true">3</button>
+            <button type="button" data-wert="5" aria-pressed="false">5</button>
+          </div>
+        </div>
+
+        <div class="kippen">
+          <label class="kippe">
+            <span>{{ t.gesichter }}</span>
+            <input type="checkbox" id="gesichter" checked>
+            <span class="knopf" aria-hidden="true"></span>
+          </label>
+
+          <label class="kippe">
+            <span>{{ t.textflaeche }}</span>
+            <input type="checkbox" id="textflaeche">
+            <span class="knopf" aria-hidden="true"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <details>
+      <summary>{{ t.erweitert }}</summary>
+      <div class="erweitert">
+        <div class="gruppe">
+          <span class="beschriftung">{{ t.tiefe }}</span>
+          <div class="wahl" role="group" data-name="tiefe">
+            <button type="button" data-wert="schnell" aria-pressed="true">{{ t.schnell }}</button>
+            <button type="button" data-wert="gruendlich" aria-pressed="false">{{ t.gruendlich }}</button>
+          </div>
+          <p class="hinweis" id="tiefehinweis" hidden>{{ t.tiefe_hinweis }}</p>
+        </div>
+
+        <label class="kippe">
+          <span>{{ t.transkript }}</span>
+          <input type="checkbox" id="transkript">
+          <span class="knopf" aria-hidden="true"></span>
+        </label>
+        <p class="hilfe">{{ t.transkript_hilfe }}</p>
+
+        <div class="feld">
+          <label for="schaerfe">{{ t.schaerfe }}
+            <span class="zaehler" id="schaerfewert">{{ '%.2f'|format(schaerfe_vorgabe) }}</span>
+          </label>
+          <input type="range" id="schaerfe" min="0.2" max="0.9" step="0.05"
+                 value="{{ schaerfe_vorgabe }}">
+          <p class="hilfe">{{ t.schaerfe_hilfe }}</p>
+        </div>
+
+        <label class="kippe">
+          <span>{{ t.zwischenstufen }}</span>
+          <input type="checkbox" id="zwischenstufen" checked>
+          <span class="knopf" aria-hidden="true"></span>
+        </label>
+      </div>
+    </details>
+
+    <div class="startleiste">
+      <button type="submit" class="starten" id="start">{{ t.start }}</button>
+    </div>
+  </form>
+
+  <!-- Rechte Spalte: Sichtungsbereich, darunter der Verlauf -->
+  <div class="rechts">
+    <section class="sichtung" id="sichtung" aria-live="polite" tabindex="-1">
+      <div class="leer">
+        <h2>{{ t.leer_titel }}</h2>
+        <p>{{ t.leer_text }}</p>
+      </div>
+    </section>
+
+    <section class="verlauf" id="verlauf" hidden>
+      <h2>{{ t.verlauf }}</h2>
+      <p class="hilfe">{{ t.verlauf_hilfe }}</p>
+      <div class="verlaufliste" id="verlaufliste"></div>
+    </section>
+  </div>
+
+</div>
+
+<script>window.TEXTE = {{ katalog|safe }};</script>
+<script src="/static/app.js?v={{ stand }}"></script>
+</body>
+</html>

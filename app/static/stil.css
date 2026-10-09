@@ -1,0 +1,426 @@
+/* Sichtungsraum.
+   Neutrale, warme, dunkle Umgebung, in der die Bilder die einzigen farbigen
+   Dinge auf dem Schirm sind. Kein Farbverlauf, kein Glaseffekt, kein
+   Schlagschatten, keine dekorative Illustration. */
+
+:root{
+  --room:#1E1D1B;
+  --panel:#292825;
+  --line:#3B3934;
+  --ink:#EFECE4;
+  --ink-dim:#9B968C;
+  --brass:#C9A227;
+  --cool:#7392A6;
+  --fehler:#B5654A;
+
+  /* Moos statt Signalgrün: Es hat annähernd dieselbe Helligkeit wie das
+     Messing (0,29 gegen 0,38) und gehört damit in dieselbe gedämpfte
+     Familie — ein grelles Grün risse den Sichtungsraum auf und stünde in
+     Konkurrenz zu den Bildern. Schrift darauf 5,4:1, also über AA. */
+  --gruen:#7A9E5B;
+  --gruen-tief:#1B2114;
+
+  --schrift:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --daten:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--room);color:var(--ink);
+  font:400 15px/1.55 var(--schrift);
+  -webkit-font-smoothing:antialiased;
+}
+:focus-visible{outline:2px solid var(--brass);outline-offset:3px;border-radius:1px}
+
+/* Muss den Klassenregeln vorgehen: .datei{display:flex} überstimmt sonst das
+   hidden-Attribut, und die Dateizeile stand leer im Formular. */
+[hidden]{display:none!important}
+
+/* --- Grundgerüst ------------------------------------------------------- */
+
+.kopfleiste{
+  display:flex;align-items:center;gap:16px;flex-wrap:nowrap;
+  padding:13px 26px;border-bottom:1px solid var(--line);
+}
+.wortmarke{
+  display:flex;align-items:center;gap:9px;
+  font:600 17px/1 var(--schrift);letter-spacing:-.01em;font-stretch:92%;
+}
+.wortmarke img{display:block;flex:0 0 auto}
+.untertitel{color:var(--ink-dim);font-size:13px}
+.kopfleiste form{margin-left:12px}
+
+/* Sprachwahl. Sichtbar, nicht in einem Menü versteckt — wer die falsche
+   Sprache vorfindet, soll nicht erst suchen müssen. */
+.sprachwahl{display:flex;gap:2px;margin-left:auto;align-items:center}
+.sprachwahl a{
+  display:block;padding:6px 10px;border:1px solid var(--line);border-radius:2px;
+  font:500 12px/1 var(--daten);letter-spacing:.06em;
+  color:var(--ink-dim);text-decoration:none;transition:color .12s ease,border-color .12s ease;
+}
+.sprachwahl a:hover{color:var(--ink);border-color:var(--brass);text-decoration:none}
+.sprachwahl a[aria-current=true]{
+  color:#211E15;background:var(--brass);border-color:var(--brass);
+}
+.anmeldekarte .sprachwahl{margin:26px 0 0;justify-content:center}
+
+.raum{
+  display:grid;grid-template-columns:452px 1fr;gap:30px;
+  max-width:1560px;margin:0 auto;padding:18px 26px 10px;align-items:start;
+}
+@media (max-width:900px){
+  .raum{grid-template-columns:1fr;gap:26px;padding:20px 16px 70px}
+}
+/* Auf schmalen Schirmen weicht zuerst der Untertitel: Wortmarke,
+   Sprachwahl und Abmelden müssen in eine Zeile passen, sonst bricht die
+   Kopfleiste in drei Etagen um. */
+@media (max-width:620px){
+  .kopfleiste .untertitel{display:none}
+  .kopfleiste{gap:10px;padding:14px 16px}
+}
+@media (max-width:400px){ .raum{padding:16px 12px 60px} .kopfleiste{padding:12px} }
+
+/* --- Eingabespalte ----------------------------------------------------- */
+
+.eingaben{display:flex;flex-direction:column;gap:13px;min-width:0}
+.feld{display:flex;flex-direction:column;gap:6px}
+label,.beschriftung{font:500 13px/1.3 var(--schrift);color:var(--ink)}
+.hilfe{font-size:12.5px;color:var(--ink-dim);margin:0}
+
+input[type=text],input[type=url],input[type=password],textarea,select{
+  width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);
+  font:400 14.5px/1.5 var(--schrift);padding:10px 12px;border-radius:2px;
+}
+textarea{resize:vertical;min-height:58px}
+input:focus,textarea:focus,select:focus{border-color:var(--brass);outline:none}
+input::placeholder,textarea::placeholder{color:var(--ink-dim);opacity:.75}
+input:disabled,textarea:disabled{opacity:.38;cursor:not-allowed}
+
+.zaehler{font:400 12px/1 var(--daten);color:var(--ink-dim);align-self:flex-end}
+.zaehler.nah{color:var(--brass)}
+.zaehler.drueber{color:var(--fehler)}
+
+/* Ablagefeld */
+.ablage{
+  border:1px dashed var(--line);background:var(--panel);border-radius:2px;
+  padding:12px 16px;text-align:center;transition:border-color .12s ease;
+}
+.ablage.drueber{border-color:var(--brass);border-style:solid}
+.ablage.aus{opacity:.38;pointer-events:none}
+.ablage-zeile{display:flex;align-items:center;justify-content:center;gap:14px;
+  flex-wrap:wrap}
+.ablage p{margin:0;font-size:14px}
+.ablage .hilfe{margin-top:6px}
+.ablage input[type=file]{position:absolute;width:1px;height:1px;opacity:0;
+  overflow:hidden;clip:rect(0 0 0 0)}
+/* Ablagebereich und Adressfeld schliessen sich aus -- die Adresse sperrt die
+   Ablage. Der Trenner sagt das, bevor man den zweiten Weg ausprobiert. */
+.oder{
+  display:flex;align-items:center;gap:12px;margin:5px 0 1px;
+  font:400 12px/1 var(--schrift);color:var(--ink-dim);text-transform:lowercase;
+}
+.oder::before,.oder::after{content:"";flex:1;height:1px;background:var(--line)}
+
+.datei{
+  padding:11px 12px;background:var(--panel);border:1px solid var(--line);
+  font:400 12.5px/1.4 var(--daten);color:var(--ink);text-align:left;
+  display:flex;justify-content:space-between;gap:10px;align-items:center;
+}
+/* Dateinamen aus Exportwerkzeugen sind lang und haben keine Leerzeichen.
+   Ohne min-width:0 wächst das Flex-Element über den Kasten hinaus, statt
+   umzubrechen — der Name lief rechts heraus. */
+.datei #dateiname{min-width:0;overflow-wrap:anywhere;hyphens:auto}
+.datei button{flex:0 0 auto;padding:2px 7px;font-size:11px}
+
+/* Schalter */
+.schalter{display:flex;flex-direction:column;gap:14px}
+
+/* Zwei Steuerungen nebeneinander. Gestapelt reicht die Spalte sonst weit
+   unter die Falz, und man stellt ein, was man nicht sieht. */
+.paar{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.kippen{display:flex;flex-direction:column;justify-content:flex-end;gap:6px;
+  min-width:0;padding-bottom:2px}
+/* Schmal gibt es senkrechten Platz genug, und nebeneinander bräche
+   „Gesichter bevorzugen" zweizeilig um. Muss hinter der Regel oben stehen —
+   bei gleicher Spezifität gewinnt die spätere. */
+@media (max-width:620px){ .paar{grid-template-columns:1fr} }
+.gruppe{display:flex;flex-direction:column;gap:6px;min-width:0}
+.wahl{display:flex;gap:0;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.wahl button{
+  flex:1;min-width:0;background:var(--panel);border:0;border-right:1px solid var(--line);
+  color:var(--ink-dim);font:500 13px/1 var(--schrift);padding:9px 6px;cursor:pointer;
+  transition:color .12s ease,background .12s ease;
+}
+.wahl button:last-child{border-right:0}
+.wahl button[aria-pressed=true]{background:var(--brass);color:#211E15}
+.wahl button:hover:not([aria-pressed=true]){color:var(--ink)}
+
+.kippe{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:2px 0;cursor:pointer;min-width:0}
+.kippe span:first-child{min-width:0}
+.kippe span{font:400 14px/1.3 var(--schrift)}
+.kippe input{position:absolute;opacity:0;width:1px;height:1px}
+.knopf{
+  flex:0 0 40px;height:22px;background:var(--line);border-radius:11px;position:relative;
+  transition:background .12s ease;
+}
+.knopf::after{
+  content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;
+  background:var(--ink-dim);transition:transform .12s ease,background .12s ease;
+}
+.kippe input:checked + .knopf{background:var(--brass)}
+.kippe input:checked + .knopf::after{transform:translateX(18px);background:#211E15}
+.kippe input:focus-visible + .knopf{outline:2px solid var(--brass);outline-offset:3px}
+
+/* Motivlage: ein Drittelraster als Bild des Bildes. Neun Flächen sagen
+   schneller, was gemeint ist, als neun Wörter. Zu dritt in einer Reihe war es
+   gequetscht — jetzt bekommt es eine halbe Spalte. */
+.lagewahl{display:flex;align-items:center;gap:11px;min-width:0}
+.lageraster{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
+  flex:0 0 auto;width:96px;aspect-ratio:16/10;
+  border:1px solid var(--line);background:var(--line);border-radius:2px;
+}
+.lageraster button{
+  border:0;padding:0;background:var(--panel);cursor:pointer;
+  display:grid;place-items:center;transition:background .12s ease;
+}
+.lageraster button:hover{background:#34322D}
+.lageraster button i{
+  width:5px;height:5px;border-radius:50%;background:var(--ink-dim);
+  opacity:.45;transition:background .12s ease,opacity .12s ease,transform .12s ease;
+}
+/* Nach der Analyse traegt die Punktstaerke die Auskunft: kraeftig = dort
+   liegen Kandidaten, blass = Zelle leer. --dichte setzt das Skript. */
+.lageraster.dichte button i{opacity:var(--dichte,.12);background:var(--ink)}
+.lageraster button[aria-pressed=true]{background:var(--brass)}
+.lageraster button[aria-pressed=true] i{
+  background:#211E15;opacity:1;transform:scale(1.3);
+}
+/* Rechts neben dem Raster: gewaehlte Lage, darunter die Prioritaet. Der
+   Prio-Schalter erscheint nur bei gesetzter Position und passt in die Hoehe
+   des Rasters -- die Zeile waechst nicht, nichts rutscht unter die Falz. */
+.lagerechts{display:flex;flex-direction:column;gap:7px;min-width:0}
+.lageprio .prioname{
+  display:block;font:500 11px/1 var(--schrift);color:var(--ink-dim);
+  margin-bottom:4px;
+}
+.wahl.zwerg button{padding:4px 9px;font-size:11.5px}
+
+/* Der gewählte Zustand steht neben dem Raster, nicht als eigener Knopf —
+   ein zweiter Klick auf dieselbe Zelle hebt die Wahl wieder auf. */
+.lagestand{
+  font:400 12px/1.3 var(--schrift);color:var(--ink-dim);min-width:0;
+  overflow-wrap:anywhere;
+}
+.lagestand.gesetzt{color:var(--brass)}
+
+.hinweis{font-size:12.5px;color:var(--cool);margin:0}
+
+/* Wegklickbarer Hinweis. Gedämpft wie ein Hilfetext, nicht wie eine Warnung —
+   es ist eine Auskunft, kein Fehler. */
+.notiz{
+  display:flex;gap:10px;align-items:center;margin:0;
+  border:1px solid var(--line);border-left:2px solid var(--cool);
+  padding:8px 10px 8px 12px;border-radius:2px;
+  font-size:12.5px;line-height:1.45;color:var(--ink-dim);
+}
+.notiz .weg{
+  flex:0 0 auto;background:none;border:0;color:var(--ink-dim);cursor:pointer;
+  font:400 17px/1 var(--schrift);padding:0 2px;margin-top:-1px;
+  transition:color .12s ease;
+}
+.notiz .weg:hover{color:var(--ink)}
+
+/* Erweitert */
+details{border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font:500 13px/1.3 var(--schrift);color:var(--ink-dim);
+  list-style:none;display:flex;align-items:center;gap:7px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+";font:400 15px/1 var(--daten);color:var(--brass)}
+details[open] summary::before{content:"–"}
+summary:hover{color:var(--ink)}
+.erweitert{display:flex;flex-direction:column;gap:15px;padding-top:14px}
+input[type=range]{width:100%;accent-color:var(--brass);background:transparent}
+
+/* Der Knopf bleibt am unteren Rand stehen, auch wenn die Eingabespalte
+   laenger wird als der Schirm -- sonst muss man zum Starten erst zurueck
+   nach unten scrollen. Der Verlauf blendet aus, was darunter durchlaeuft. */
+.startleiste{
+  position:sticky;bottom:0;z-index:5;padding:9px 0 8px;
+  background:linear-gradient(to top,var(--room) 66%,rgba(30,29,27,0));
+}
+
+/* Der Startknopf trägt den Zustand in der Farbe, nicht nur in der Deckkraft:
+   Solange kein Video da ist, sieht er aus wie die anderen ruhigen Flächen.
+   Sobald eines vorliegt, wird er grün — die Farbe ist dann das Signal, dass
+   es losgehen kann. */
+.starten{
+  background:var(--gruen);color:var(--gruen-tief);
+  border:1px solid var(--gruen);border-radius:2px;
+  font:500 15px/1 var(--schrift);padding:12px;cursor:pointer;width:100%;
+  transition:background .14s ease,color .14s ease,border-color .14s ease,
+             filter .12s ease;
+}
+.starten:hover:not(:disabled){filter:brightness(1.07)}
+.starten:disabled{
+  background:var(--panel);color:var(--ink-dim);border-color:var(--line);
+  cursor:not-allowed;filter:none;
+}
+
+button.schlicht{
+  background:transparent;border:1px solid var(--line);color:var(--ink);
+  font:500 13px/1 var(--schrift);padding:9px 14px;border-radius:2px;cursor:pointer;
+  transition:border-color .12s ease;
+}
+button.schlicht:hover{border-color:var(--brass)}
+
+/* --- Sichtungsbereich -------------------------------------------------- */
+
+.rechts{display:flex;flex-direction:column;gap:34px;min-width:0}
+.sichtung{min-width:0;min-height:420px;display:flex;flex-direction:column}
+.sichtung:focus{outline:none}
+
+.leer{
+  flex:1;display:flex;flex-direction:column;justify-content:center;
+  border:1px solid var(--line);padding:60px 34px;border-radius:2px;
+}
+.leer h2{font:500 21px/1.3 var(--schrift);margin:0 0 10px;font-stretch:95%}
+.leer p{color:var(--ink-dim);margin:0;max-width:46ch}
+
+.arbeit{flex:1;display:flex;flex-direction:column;justify-content:center;
+  border:1px solid var(--line);padding:56px 34px;border-radius:2px}
+.arbeit .stufe{font:500 17px/1.3 var(--schrift);margin:0 0 20px}
+.balken{height:2px;background:var(--line);overflow:hidden}
+.balken i{display:block;height:100%;background:var(--cool);width:0;
+  transition:width .5s ease}
+.arbeit .dauer{font:400 12.5px/1 var(--daten);color:var(--ink-dim);margin:16px 0 0}
+
+.fehler{
+  flex:1;display:flex;flex-direction:column;justify-content:center;
+  border:1px solid var(--fehler);padding:44px 34px;border-radius:2px;
+}
+.fehler h2{font:500 17px/1.3 var(--schrift);margin:0 0 9px;color:var(--fehler)}
+.fehler p{color:var(--ink);margin:0 0 20px;max-width:52ch}
+
+.ergebnis{display:flex;flex-direction:column;gap:26px}
+.ergebnis-kopf{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.ergebnis-kopf h2{font:500 19px/1.2 var(--schrift);margin:0;font-stretch:95%}
+.kennzahlen{font:400 12.5px/1.5 var(--daten);color:var(--ink-dim);
+  display:flex;gap:18px;flex-wrap:wrap;margin-left:auto}
+
+.rueckfall{border:1px solid var(--cool);padding:13px 16px;border-radius:2px;
+  color:var(--cool);font-size:13.5px;margin:0}
+/* Der Positionshinweis ist eine Auskunft, kein Rückfall — gedämpfter,
+   damit er nicht wie ein Fehlschlag aussieht. */
+.rueckfall.lage{border-color:var(--line);color:var(--ink-dim);
+  border-left:2px solid var(--cool)}
+
+.vorschlaege{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.vorschlag{
+  background:var(--panel);border:1px solid var(--line);border-radius:2px;
+  overflow:hidden;transition:border-color .12s ease;opacity:0;
+}
+.vorschlag.da{opacity:1;transition:opacity .32s ease,border-color .12s ease}
+.vorschlag:hover,.vorschlag.an{border-color:var(--brass)}
+.vorschlag .bild{position:relative;display:block}
+.vorschlag img{width:100%;display:block;background:var(--room)}
+
+/* Kleiner Sicherungsknopf auf dem Bild. Immer sichtbar, nicht erst bei
+   Hover — auf einem Zeigegerät fände man ihn, mit Finger nicht. */
+.sichern{
+  position:absolute;top:9px;right:9px;width:32px;height:32px;
+  display:grid;place-items:center;border-radius:2px;
+  background:rgba(30,29,27,.82);border:1px solid rgba(239,236,228,.22);
+  color:var(--ink);text-decoration:none;
+  transition:background .12s ease,border-color .12s ease,color .12s ease;
+}
+.sichern:hover{background:var(--brass);border-color:var(--brass);color:#211E15}
+.sichern svg{display:block;width:15px;height:15px}
+.vorschlag .text{padding:14px 16px 17px}
+.vorschlag .zeile{display:flex;justify-content:space-between;align-items:baseline;
+  font:500 13px/1 var(--daten);margin-bottom:9px}
+.vorschlag .zeit{color:var(--brass)}
+.vorschlag .wert{color:var(--ink-dim)}
+/* Eigene Zeile: neben dem Zeitcode war zu wenig Platz. Messing nur beim
+   genauen Treffer -- dann trägt die Farbe die Auskunft. */
+.vorschlag .lage{margin:-4px 0 9px;font:500 12px/1.3 var(--daten);
+  color:var(--ink-dim)}
+.vorschlag .lage.lagetreffer{color:var(--brass)}
+.vorschlag p{margin:0 0 14px;font-size:13.5px}
+.vorschlag p{margin:0}
+
+/* Herkunftsleiste */
+.herkunft{margin-top:4px}
+.herkunft h3{font:500 12px/1 var(--daten);letter-spacing:.1em;color:var(--ink-dim);
+  margin:0 0 16px}
+.leiste{position:relative;height:54px}
+.leiste .spur{position:absolute;left:0;right:0;top:25px;height:3px;background:var(--line)}
+.leiste .strich{position:absolute;top:21px;width:1px;height:11px;
+  background:var(--ink-dim);opacity:.4}
+.leiste .marke{
+  position:absolute;top:13px;width:3px;height:27px;background:var(--brass);
+  margin-left:-1px;border:0;padding:0;cursor:pointer;
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.leiste .marke.an{transform:scaleY(1.4);box-shadow:0 0 0 4px rgba(201,162,39,.2)}
+.skala{display:flex;justify-content:space-between;
+  font:400 11.5px/1 var(--daten);color:var(--ink-dim)}
+
+.nochmal{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+/* --- Verlauf ----------------------------------------------------------- */
+
+.verlauf h2{font:500 12px/1 var(--daten);letter-spacing:.1em;color:var(--ink-dim);
+  margin:0 0 8px}
+.verlauf .hilfe{margin:0 0 16px}
+.verlaufliste{display:grid;gap:10px;
+  grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.eintrag{
+  display:flex;gap:11px;align-items:center;text-align:left;min-width:0;
+  background:var(--panel);border:1px solid var(--line);border-radius:2px;
+  padding:8px;cursor:pointer;color:var(--ink);
+  transition:border-color .12s ease;
+}
+.eintrag:hover,.eintrag.an{border-color:var(--brass)}
+.eintrag img{flex:0 0 64px;width:64px;height:36px;object-fit:cover;
+  background:var(--room);display:block}
+.eintrag .text{min-width:0}
+.eintrag .titel{font:400 13px/1.3 var(--schrift);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eintrag .titel.ohne{color:var(--ink-dim);font-style:italic}
+.eintrag .daten{font:400 11px/1.3 var(--daten);color:var(--ink-dim);margin-top:3px}
+.nochmal .hilfe{margin:0}
+
+/* --- Anmeldung --------------------------------------------------------- */
+
+/* Karte optisch mittig, Fusszeile unten -- ueber `margin:auto` statt
+   `justify-content:center`, sonst ueberlappen sich beide auf kurzen
+   Schirmen. */
+.anmelderaum{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  padding:24px;
+}
+.anmeldekarte{width:100%;max-width:352px;margin:auto 0}
+.fusszeile{
+  flex:0 0 auto;padding-top:26px;text-align:center;
+  font:400 12px/1.4 var(--schrift);color:var(--ink-dim);
+}
+.fusszeile a{color:var(--ink-dim);text-decoration:none;
+  border-bottom:1px solid var(--line)}
+.fusszeile a:hover{color:var(--brass);border-bottom-color:var(--brass)}
+.anmeldekarte .wortmarke{font-size:26px;letter-spacing:-.02em;font-stretch:92%;gap:12px}
+.anmeldekarte .untertitel{margin:8px 0 30px;display:block}
+.anmeldekarte form{display:flex;flex-direction:column;gap:17px}
+.anmeldefehler{
+  border:1px solid var(--fehler);color:var(--fehler);padding:11px 13px;
+  border-radius:2px;font-size:13.5px;margin:0 0 20px;
+}
+
+/* --- Bewegung ---------------------------------------------------------- */
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+  .vorschlag{opacity:1}
+}

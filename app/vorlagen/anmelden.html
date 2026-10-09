@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="{{ sprache }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ t.anmelden_titel }}</title>
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/stil.css?v={{ stand }}">
+</head>
+<body>
+<main class="anmelderaum">
+  <div class="anmeldekarte">
+    <div class="wortmarke"><img src="/static/marke.svg" alt="" width="30" height="30">{{ t.marke }}</div>
+    <span class="untertitel">{{ t.untertitel }}</span>
+
+    {% if fehler %}<p class="anmeldefehler" role="alert">{{ fehler }}</p>{% endif %}
+
+    <form method="post" action="/anmelden">
+      <div class="feld">
+        <label for="benutzer">{{ t.name }}</label>
+        <input type="text" id="benutzer" name="benutzer" autocomplete="username"
+               required autofocus>
+      </div>
+      <div class="feld">
+        <label for="passwort">{{ t.passwort }}</label>
+        <input type="password" id="passwort" name="passwort"
+               autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="starten">{{ t.anmelden }}</button>
+    </form>
+
+    <nav class="sprachwahl" aria-label="{{ t.sprache }}">
+      {% for code, name in sprachen.items() %}
+      <a href="/sprache/{{ code }}"
+         {% if code == sprache %}aria-current="true"{% endif %}>{{ name }}</a>
+      {% endfor %}
+    </nav>
+  </div>
+
+  <footer class="fusszeile">
+    {{ t.entwickelt_von }}
+    <a href="https://hc-digitalsysteme.de" target="_blank"
+       rel="noopener noreferrer">hc-digitalsysteme.de</a>
+  </footer>
+</main>
+</body>
+</html>

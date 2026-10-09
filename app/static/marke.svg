@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-label="Loupe">
+  <!-- Die Linse: ein Ring, kein Suchsymbol mit Griff. Der Griff wäre die
+       Lupe aus jeder Suchleiste und würde falsch gelesen. -->
+  <circle cx="32" cy="32" r="21" fill="none" stroke="#EFECE4" stroke-width="4"/>
+  <circle cx="32" cy="32" r="12.5" fill="none" stroke="#EFECE4" stroke-width="2"
+          opacity=".38"/>
+  <!-- Die Marke auf dem Ring: dasselbe Zeichen, mit dem die Herkunftsleiste
+       einen gewählten Moment markiert. Logo und Produkt sprechen dieselbe
+       Sprache. -->
+  <path d="M32 3.5 v11" stroke="#C9A227" stroke-width="5" stroke-linecap="butt"/>
+</svg>
